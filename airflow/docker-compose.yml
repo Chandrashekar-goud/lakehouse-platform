@@ -1,0 +1,65 @@
+# Minimal local Airflow: LocalExecutor + Postgres. `docker compose up` from
+# this directory. UI at http://localhost:8080 (admin/admin).
+x-airflow-common: &airflow-common
+  build: .
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
+    PYTHONPATH: /opt/project/src
+    # Fill these in a .env file next to this compose file (never commit it):
+    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+    AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+    LAKEHOUSE_S3_BUCKET: ${LAKEHOUSE_S3_BUCKET:-}
+    DATABRICKS_HOST: ${DATABRICKS_HOST:-}
+    DATABRICKS_TOKEN: ${DATABRICKS_TOKEN:-}
+    DATABRICKS_BATCH_JOB_ID: ${DATABRICKS_BATCH_JOB_ID:-}
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ../src:/opt/project/src:ro
+    - ../configs:/opt/project/configs:ro
+    - ./state:/opt/project/state
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - >
+        airflow db migrate &&
+        airflow users create --username admin --password admin
+        --firstname a --lastname a --role Admin --email admin@example.com
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports: ["8080:8080"]
+    restart: unless-stopped
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,35 @@
+weather:
+  source_system: open-meteo
+  cities:
+    - name: chicago
+      latitude: 41.8781
+      longitude: -87.6298
+    - name: new_york
+      latitude: 40.7128
+      longitude: -74.0060
+    - name: seattle
+      latitude: 47.6062
+      longitude: -122.3321
+  hourly_variables:
+    - temperature_2m
+    - relative_humidity_2m
+    - precipitation
+    - wind_speed_10m
+  initial_start_date: "2026-01-01"
+
+crimes:
+  source_system: chicago-data-portal
+  api_url: "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
+  page_size: 50000
+  initial_watermark: "2026-01-01T00:00:00"
+
+storage:
+  s3_bucket: "CHANGE_ME-lakehouse-raw"
+  raw_prefix: "raw"
+  uc_volume_fallback: "/Volumes/lakehouse/landing/raw"
+
+databricks:
+  catalog: lakehouse
+  bronze_schema: bronze
+  silver_schema: silver
+  gold_schema: gold

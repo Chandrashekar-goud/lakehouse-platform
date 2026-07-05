@@ -1,0 +1,47 @@
+resources:
+  jobs:
+    lakehouse_batch:
+      name: lakehouse-batch-medallion
+      # Serverless job compute (Free Edition default). Task graph encodes the
+      # medallion dependency: bronze fans out, gold fans in.
+      tasks:
+        - task_key: bronze_weather
+          notebook_task:
+            notebook_path: ../notebooks/01_bronze_batch.py
+            base_parameters: {source: weather}
+        - task_key: bronze_crimes
+          notebook_task:
+            notebook_path: ../notebooks/01_bronze_batch.py
+            base_parameters: {source: crimes}
+        - task_key: silver_weather
+          depends_on: [{task_key: bronze_weather}]
+          notebook_task:
+            notebook_path: ../notebooks/02_silver_weather.py
+        - task_key: silver_crimes
+          depends_on: [{task_key: bronze_crimes}]
+          notebook_task:
+            notebook_path: ../notebooks/03_silver_crimes.py
+        - task_key: gold
+          depends_on:
+            - {task_key: silver_weather}
+            - {task_key: silver_crimes}
+          notebook_task:
+            notebook_path: ../notebooks/04_gold.py
+      schedule:
+        quartz_cron_expression: "0 30 6 * * ?"  # 06:30 UTC daily
+        timezone_id: UTC
+        pause_status: PAUSED  # unpause after first successful manual run
+      email_notifications: {}
+      max_concurrent_runs: 1
+
+    lakehouse_streaming:
+      name: lakehouse-streaming-events
+      tasks:
+        - task_key: stream_pass
+          notebook_task:
+            notebook_path: ../notebooks/05_streaming_events.py
+      schedule:
+        quartz_cron_expression: "0 0/30 * * * ?"  # every 30 min, availableNow drain
+        timezone_id: UTC
+        pause_status: PAUSED
+      max_concurrent_runs: 1

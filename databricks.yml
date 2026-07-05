@@ -1,0 +1,31 @@
+# Databricks Asset Bundle: infrastructure-as-code for workspace deployment.
+# `databricks bundle deploy -t dev` syncs src/, notebooks, and job definitions.
+bundle:
+  name: lakehouse-platform
+
+include:
+  - databricks/resources/*.yml
+
+sync:
+  paths:
+    - src
+    - databricks/notebooks
+    - configs
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: ${var.databricks_host}
+
+  prod:
+    mode: production
+    workspace:
+      host: ${var.databricks_host}
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/prod
+
+variables:
+  databricks_host:
+    description: Workspace URL, e.g. https://dbc-xxxx.cloud.databricks.com
+    default: ${workspace.host}
