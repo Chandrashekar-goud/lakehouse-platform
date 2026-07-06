@@ -31,7 +31,8 @@ default_args = {
 def weather_ingest():
     @task
     def fetch_and_land() -> dict:
-        from datetime import date, timedelta as td
+        from datetime import date
+        from datetime import timedelta as td
 
         from lakehouse.ingestion.api_client import OpenMeteoClient
         from lakehouse.ingestion.landing import build_key, land_to_s3, new_batch_id
@@ -55,7 +56,9 @@ def weather_ingest():
             )
             records.extend(flatten_hourly(payload, city["name"]))
         if not records:
-            raise ValueError(f"Zero records for window {start}..{end}: refusing to advance watermark")
+            raise ValueError(
+                f"Zero records for window {start}..{end}: refusing to advance watermark"
+            )
 
         import os
         bucket = os.environ["LAKEHOUSE_S3_BUCKET"]

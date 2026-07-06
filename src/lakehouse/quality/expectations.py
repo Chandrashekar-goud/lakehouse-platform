@@ -9,8 +9,8 @@ explainable line by line in an interview.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as F

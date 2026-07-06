@@ -1,10 +1,11 @@
+import pytest
+
 from lakehouse.quality.expectations import (
     assert_unique,
     expect_between,
     expect_not_null,
     run_suite,
 )
-import pytest
 
 
 def test_run_suite_splits_good_and_quarantine_with_reasons(spark):
