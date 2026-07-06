@@ -70,7 +70,7 @@ def run_suite(df: DataFrame, checks: list[Check]) -> tuple[DataFrame, DataFrame,
     reasons = F.array_compact(
         F.array(*[F.when(F.col(flag), F.lit(name)) for flag, name in flag_cols])
     )
-    tagged = tagged.withColumn("_dq_failures", reasons).cache()
+    tagged = tagged.withColumn("_dq_failures", reasons)
 
     failures_by_check = {
         name: tagged.filter(F.col(flag)).count() for flag, name in flag_cols
