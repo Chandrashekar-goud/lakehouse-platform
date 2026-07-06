@@ -17,12 +17,12 @@ targets:
     mode: development
     default: true
     workspace:
-      host: ${var.databricks_host}
+      host: https://dbc-aef3cf35-536e.cloud.databricks.com
 
   prod:
     mode: production
     workspace:
-      host: ${var.databricks_host}
+      host: https://dbc-aef3cf35-536e.cloud.databricks.com
       root_path: /Workspace/Shared/.bundle/${bundle.name}/prod
 
 variables:
